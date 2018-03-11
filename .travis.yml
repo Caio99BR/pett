@@ -1,0 +1,39 @@
+sudo: true
+script:
+# Download AdrianDC extenion to use editreplacematch
+- source <(curl -Ls https://github.com/AdrianDC/android_development_shell_tools/raw/master/sources/host/edit.rc);
+# Separate only user owner
+- export TRAVIS_REPO_OWNER_ONLY=$(echo "${TRAVIS_REPO_SLUG}" | cut -d'/' -f1);
+# Install dependencies to build latest lftp
+- sudo apt-get install openssl build-essential libreadline-dev libssl-dev ncurses-dev libgnutls28-dev pkg-config -y;
+# Go to working dir
+- cd "${TRAVIS_BUILD_DIR}/..";
+# Download latest lftp
+- wget http://lftp.yar.ru/ftp/lftp-4.8.3.tar.gz;
+# Extract lftp
+- tar zxvf lftp-4.8.3.tar.gz &>/dev/null;
+# Go to extract lftp
+- cd lftp-4.8.3;
+# Prepare to build
+- ./configure &>/dev/null;
+# Build and install
+- make -j8 && sudo make install &>/dev/null;
+# Go to working dir
+- cd "${TRAVIS_BUILD_DIR}/..";
+# Clone master branch from PS3Xploit repo
+- git clone 'https://github.com/PS3Xploit/pett' -b 'master' "${TRAVIS_BUILD_DIR}/../pett-ps3xploit";
+# Clone default branch of unofficial fork
+- git clone "https://github.com/${TRAVIS_REPO_SLUG}" "${TRAVIS_BUILD_DIR}/../pett-unofficial_${TRAVIS_REPO_OWNER_ONLY}";
+# Get default branch name from unofficial fork
+- cd "${TRAVIS_BUILD_DIR}/../pett-unofficial_${TRAVIS_REPO_OWNER_ONLY}";
+- export TRAVIS_REPO_SLUG_BRANCH_ONLY=$(git symbolic-ref --short HEAD);
+- cd "${TRAVIS_BUILD_DIR}/..";
+# Customize the index_select.html
+- editreplacematch "unofficial_owner" "unofficial_${TRAVIS_REPO_OWNER_ONLY}" "${TRAVIS_BUILD_DIR}/index_select.html"
+- editreplacematch "Unofficial Owner" "Unofficial ${TRAVIS_REPO_OWNER_ONLY}" "${TRAVIS_BUILD_DIR}/index_select.html"
+- editreplacematch "unofficial branch" "${TRAVIS_REPO_SLUG_BRANCH_ONLY} branch" "${TRAVIS_BUILD_DIR}/index_select.html"
+# TODO: Fix permission before uploading or something else related
+# Remove files that broken upload of FTP due permissions problem
+- rm -fr "${TRAVIS_BUILD_DIR}/../pett-ps3xploit/files/test/debug/socat/" "${TRAVIS_BUILD_DIR}/../pett-unofficial_${TRAVIS_REPO_OWNER_ONLY}/files/test/debug/socat/";
+# FTP: Clean old root files of server and make new root files, Upload Unofficial fork, Upload PS3Xploit repo, Move index_select.html to index.html
+- lftp "ftp://${FTPUploadUserName}:${FTPUploadPassword}@${FTPUploadUserUrl}" <<< "rm -fr '/public_html'; mkdir '/public_html'; mirror -R --verbose=1 '${TRAVIS_BUILD_DIR}/../pett-unofficial_${TRAVIS_REPO_OWNER_ONLY}' '/public_html/pett-unofficial_${TRAVIS_REPO_OWNER_ONLY}'; mirror -R --verbose=1 '${TRAVIS_BUILD_DIR}/../pett-ps3xploit' '/public_html/pett-ps3xploit'; mv '/public_html/pett-unofficial_${TRAVIS_REPO_OWNER_ONLY}/index_select.html' '/public_html/index.html'; quit;";
