@@ -2,7 +2,7 @@
 
 * Official WebSite: [**ps3xploit.com**](https://ps3xploit.com)
 * Official PS3 WebKit ROP Tutorial Thread at: [**psx-place.com**](http://www.psx-place.com/threads/webkit-rop-chain-tutorials-creation-editing-debugging-ps3-development.15826)
-* Current PETT Live Version: [**ps3xploit.github.io/pett**](https://ps3xploit.github.io/pett) (Alert: This domain not yet work on PS3 Web Browser)
+* Daily PETT Live Version: [**upett.000webhostapp.com**](https://upett.000webhostapp.com)
 
 <br/>
 
